@@ -55,15 +55,18 @@ application = do
     let dbFile = makeValid (T.unpack dir) </> mdb
         toLink (pid, p, _) = H.li . (H.a H.! A.href (H.toValue ("/" <> mdb <> "/" <> show pid))) $ H.toHtml p
     exists <- liftIO $ doesFileExist dbFile
+    liftIO $ putStrLn $ "dbExists: " <> show exists
     if exists then do
+      liftIO $ putStrLn "getting cntOfPages"
       cntOfPages <- liftIO $ withConnection (dbFile::String) $ \conn -> do
         r <- query_ conn "select count(*) from pages;" :: IO [Only Int]
         return $ case r of
           [x] -> fromOnly x
           [] -> -1
           (_:_:_) -> -1
-      pageList <- liftIO $ withConnection (dbFile::String) $ \conn ->
-        query_ conn "select pages.id, pages.page, (select count(*) from page_links where link=pages.id) as num from pages order by num desc limit 20;" :: IO [(Int, Text, Int)]
+      -- NOTE: join is way faster than subselect.
+      pageList <- liftIO $ withConnection (dbFile::String) $ \conn -> 
+        query_ conn "select pages.id, pages.page, count(page_links.id)  as num from pages join page_links on pages.id = page_links.link group by pages.id, pages.page order by num desc limit 20;" :: IO [(Int, Text, Int)]
       S.html . TL.pack . renderHtml $ do
         H.head $ H.title "PaSEO (pah-sey-oh)"
         H.body $ do
