@@ -1,0 +1,50 @@
+name: paseo
+version: '0.1.0.0'
+category: Web
+author: Kit Dallege
+maintainer: kitdallege@gmail.com
+copyright: ! 'Copyright: (c) 2017 Kit Dallege'
+license: BSD3
+homepage: https://github.com/kitdallege/paseo#readme
+extra-source-files:
+- README.md
+ghc-options:
+- -Wall
+- -threaded
+- -rtsopts
+- -with-rtsopts=-N
+- -O2
+- -Wall
+- -threaded
+- -rtsopts
+- -with-rtsopts=-N
+- -O2
+dependencies:
+- base >=4.7 && <5
+- aeson
+- bytestring
+- containers
+- network-uri
+- sqlite-simple
+- time
+executables:
+  paseo-ui:
+    main: Web.hs
+    source-dirs: src
+    dependencies:
+      - blaze-html
+      - directory
+      - filepath
+      - http-types
+      - mtl
+      - scotty
+      - text
+      - wai
+      - wai-extra
+  paseo:
+    main: Spider.hs
+    source-dirs: src
+    dependencies:
+      - charlotte
+      - tagsoup
+      - tagsoup-selection
