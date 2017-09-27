@@ -56,6 +56,18 @@ stdHead = H.head $ do
   --         H.! A.type_ "text/css"
   --         H.! A.href "https://cdnjs.cloudflare.com/ajax/libs/mini.css/2.3.4/mini-dark.min.css"
 
+-- TODO: ConfigM should be AppM and contain cofigurations as well as other stuff.
+-- Need a `activeCrawls :: TVar (Map Text Async)` at AppM level so that a crawl
+-- can be started at web-ui level, and poll'd for its completion.
+-- https://stackoverflow.com/questions/44552424/forking-new-threads-in-scotty-server
+-- https://stackoverflow.com/questions/29115424/how-to-open-a-separate-socket-connection-in-scotty-or-yesod
+-- https://stackoverflow.com/questions/22703289/scotty-connection-pool-as-monad-reader?rq=1
+-- Bust out query logic, and view logic, so the various handlers are (way shorter).
+-- (maybe go to the) /app/ /lib/ style (or /app/ /src/) cuz i love me some src.
+-- persistent+esqueleto [might be worth it @ this point]
+-- pagination: http://www.sqlite.org/cvstrac/wiki?p=ScrollingCursor
+-- (streaming ?): https://hackage.haskell.org/package/streaming
+-- micro-lens: http://hackage.haskell.org/package/microlens-platform
 application :: S.ScottyT TL.Text ConfigM ()
 application = do
   S.middleware logStdoutDev
@@ -75,9 +87,10 @@ application = do
     let dbFile = makeValid (T.unpack dir) </> mdb
         toLink (pid, p, _) = H.li . (H.a H.! A.href (H.toValue ("/" <> mdb <> "/" <> show pid))) $ H.toHtml p
     exists <- liftIO $ doesFileExist dbFile
-    liftIO $ putStrLn $ "dbExists: " <> show exists
     if exists then do
-      liftIO $ putStrLn "getting cntOfPages"
+      -- TODO: Combine multiple withConnections into a single block
+      -- which gets data and either returns it, or just renders the
+      -- html out with it and returns that..
       cntOfPages <- liftIO $ withConnection (dbFile::String) $ \conn -> do
         r <- query_ conn "select count(*) from pages;" :: IO [Only Int]
         return $ case r of
