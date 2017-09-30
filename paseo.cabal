@@ -45,6 +45,7 @@ library
       Paseo
       Paseo.Spider
       Paseo.Web
+      Paseo.Web.Views
   default-language: Haskell2010
 
 executable paseo
