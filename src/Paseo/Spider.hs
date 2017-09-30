@@ -2,7 +2,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-module Main where
+module Paseo.Spider
+  (
+    main
+  , mainDb
+  ) where
 import           Prelude                     (Eq, IO, Int, Integer, Ord, Show,
                                               String, filter, length, map,
                                               mapM_, print, return, round, show,

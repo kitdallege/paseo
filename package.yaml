@@ -8,6 +8,7 @@ license: BSD3
 homepage: https://github.com/kitdallege/paseo#readme
 extra-source-files:
 - README.md
+
 ghc-options:
 - -Wall
 - -threaded
@@ -19,32 +20,43 @@ ghc-options:
 - -rtsopts
 - -with-rtsopts=-N
 - -O2
+
 dependencies:
 - base >=4.7 && <5
 - aeson
+- blaze-html
 - bytestring
+- charlotte
 - containers
+- directory
+- filepath
+- http-types
+- mtl
 - network-uri
+- scotty
 - sqlite-simple
+- tagsoup
+- tagsoup-selection
+- text
 - time
+- wai
+- wai-extra
+
+
+
+library:
+  source-dirs: src
+
 executables:
-  paseo-ui:
-    main: Web.hs
-    source-dirs: src
-    dependencies:
-      - blaze-html
-      - directory
-      - filepath
-      - http-types
-      - mtl
-      - scotty
-      - text
-      - wai
-      - wai-extra
   paseo:
-    main: Spider.hs
-    source-dirs: src
+    main: Main.hs
+    source-dirs: app
     dependencies:
-      - charlotte
-      - tagsoup
-      - tagsoup-selection
+      - paseo
+
+
+  paseo-spider:
+    main: Spider.hs
+    source-dirs: app
+    dependencies:
+      - paseo

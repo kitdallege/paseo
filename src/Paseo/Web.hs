@@ -4,7 +4,12 @@
     An example of embedding a custom monad into Scotty's transformer
     stack, using ReaderT to provide access to a global state.
 -}
-module Main where
+module Paseo.Web
+  (
+    main
+  , application
+
+  ) where
 import Data.Semigroup ((<>))
 import           Control.Applicative
 import Control.Monad (forM_)
