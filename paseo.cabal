@@ -20,10 +20,11 @@ extra-source-files:
 library
   hs-source-dirs:
       src
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N -O2 -Wall -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -O2 -Wall
   build-depends:
       base >=4.7 && <5
     , aeson
+    , aeson-pretty
     , blaze-html
     , bytestring
     , charlotte
@@ -33,18 +34,24 @@ library
     , http-types
     , mtl
     , network-uri
+    , process
     , scotty
     , sqlite-simple
     , tagsoup
     , tagsoup-selection
     , text
     , time
+    , vector
     , wai
     , wai-extra
   exposed-modules:
       Paseo
       Paseo.Spider
+      Paseo.Spider.VnuValidation
       Paseo.Web
+      Paseo.Web.App
+      Paseo.Web.Db
+      Paseo.Web.Types
       Paseo.Web.Views
   default-language: Haskell2010
 
@@ -52,10 +59,11 @@ executable paseo
   main-is: Main.hs
   hs-source-dirs:
       app
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N -O2 -Wall -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -O2 -Wall -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       base >=4.7 && <5
     , aeson
+    , aeson-pretty
     , blaze-html
     , bytestring
     , charlotte
@@ -65,12 +73,14 @@ executable paseo
     , http-types
     , mtl
     , network-uri
+    , process
     , scotty
     , sqlite-simple
     , tagsoup
     , tagsoup-selection
     , text
     , time
+    , vector
     , wai
     , wai-extra
     , paseo
@@ -82,10 +92,11 @@ executable paseo-spider
   main-is: Spider.hs
   hs-source-dirs:
       app
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N -O2 -Wall -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -O2 -Wall -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       base >=4.7 && <5
     , aeson
+    , aeson-pretty
     , blaze-html
     , bytestring
     , charlotte
@@ -95,12 +106,14 @@ executable paseo-spider
     , http-types
     , mtl
     , network-uri
+    , process
     , scotty
     , sqlite-simple
     , tagsoup
     , tagsoup-selection
     , text
     , time
+    , vector
     , wai
     , wai-extra
     , paseo

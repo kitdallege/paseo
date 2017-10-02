@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+-- {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 module Paseo.Spider
@@ -7,11 +7,11 @@ module Paseo.Spider
     main
   , mainDb
   ) where
-import           Prelude                     (Eq, IO, Int, Integer, Ord, Show,
-                                              String, filter, length, map,
-                                              mapM_, print, return, round, show,
-                                              succ, uncurry, ($), (.), (<),
-                                              (<$>), (==))
+-- import           Prelude                     (Eq, IO, Int, Integer, Ord, Show,
+--                                               String, filter, length, map,
+--                                               mapM_, print, return, round, show,
+--                                               succ, uncurry, ($), (.), (<),
+--                                               (<$>), (==))
 -- import Debug.Trace
 import           Control.Monad               (join)
 import qualified Data.ByteString.Lazy.Char8  as BSL
@@ -58,10 +58,17 @@ data PageData = PageData {
   , pageDepth :: !Int
   , pageRef   :: !String
   , pageMeta  :: ![MetaTag]
+  , pageMetrics :: ![Metric]
 } deriving (Show, Generic)
+
+data Metric = Metric
+  { metricType :: String
+  , metricData :: Map.Map String String
+  } deriving (Show, Generic)
 
 instance ToJSON MetaTag
 instance ToJSON PageData
+instance ToJSON Metric
 
 type ParseResult = Result PageType PageData
 
@@ -70,7 +77,7 @@ siteMapSpider = SpiderDefinition {
     _name = "site-map-generator"
   , _startUrl = (Page 1 "START", "http://local.lasvegassun.com/")
   , _extract = parse
-  , _transform = Nothing -- Just pipeline
+  , _transform = Just pipeline
   , _load = Nothing
 }
 
@@ -78,8 +85,8 @@ linkSelector, metaSelector :: Selector
 Right linkSelector = parseSelector "a"
 Right metaSelector = parseSelector "meta"
 
-crawlHost :: String
-crawlHost = "local.lasvegassun.com"
+-- crawlHost :: String
+-- crawlHost = "local.lasvegassun.com"
 
 crawlHostURI :: URI
 Just crawlHostURI = URI.parseURI "http://local.lasvegassun.com"
@@ -97,13 +104,13 @@ main = do
 
 mainJson :: String -> IO ()
 mainJson filenamePart =
-  withFile ("/tmp/charlotte-" <> filenamePart <>".jl") WriteMode $ \hdl -> do
+  withFile ("/tmp/paseo/" <> filenamePart <>".jl") WriteMode $ \hdl -> do
     hSetBuffering hdl LineBuffering
     runSpider siteMapSpider {_load = Just (loadJsonLinesFile hdl)}
 
 mainDb :: String -> IO ()
 mainDb filenamePart =
-  withConnection ("/tmp/charlotte-" <> filenamePart <>".db") $ \conn -> do
+  withConnection ("/tmp/paseo/" <> filenamePart <>".db") $ \conn -> do
     mapM_ (execute_ conn) dropTableStmts
     mapM_ (execute_ conn) createTableStmts
     runSpider siteMapSpider {_load = Just (loadSqliteDb conn)}
@@ -118,7 +125,7 @@ parse (Page depth ref) resp = let
   responsePath = URI.uriPath $ Response.uri resp
   reqs = catMaybes $ Request.mkRequest <$> map show links
   results = map (\r->Request (Page nextDepth responsePath, r)) reqs
-  items = [Item $ PageData responsePath linkPaths depth ref metaTags]
+  items = [Item $ PageData responsePath linkPaths depth ref metaTags []]
   in if depth < maxDepth then results <> items else items
 
 parseTagTree :: Response -> [TagTree String]
@@ -153,9 +160,10 @@ parseMetaTags tt = let
   in map toMetaTag metaTags
 
 pipeline :: PageData -> IO PageData
-pipeline x = do
-  print x
-  return x
+pipeline page = do
+  -- results <- vnuValidate (pageResponse page)
+  print page
+  return page
 ----------------------------------
 -- Load(ers) and suporting code.
 ----------------------------------
