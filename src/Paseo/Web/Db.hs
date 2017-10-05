@@ -36,6 +36,7 @@ getPageList conn = query_ conn "select pages.id, pages.page, count(page_links.id
 
 getPageHref :: Connection -> Text -> IO Text
 getPageHref conn pid = do
+  --TODO: This pattern match can fail.
   [r] <- query conn "select page from pages where id = (?);" (Only pid):: IO [[Text]]
   return $ case r of
     [x]   -> x

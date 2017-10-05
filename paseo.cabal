@@ -20,15 +20,18 @@ extra-source-files:
 library
   hs-source-dirs:
       src
-  ghc-options: -Wall -O2 -Wall
+  ghc-options: -Wall -O2
   build-depends:
       base >=4.7 && <5
     , aeson
     , aeson-pretty
+    , async
     , blaze-html
     , bytestring
     , charlotte
     , containers
+    , digestive-functors
+    , digestive-functors-blaze
     , directory
     , filepath
     , http-types
@@ -36,6 +39,7 @@ library
     , network-uri
     , process
     , scotty
+    , stm
     , sqlite-simple
     , tagsoup
     , tagsoup-selection
@@ -51,6 +55,7 @@ library
       Paseo.Web
       Paseo.Web.App
       Paseo.Web.Db
+      Paseo.Web.Forms
       Paseo.Web.Types
       Paseo.Web.Views
   default-language: Haskell2010
@@ -59,15 +64,18 @@ executable paseo
   main-is: Main.hs
   hs-source-dirs:
       app
-  ghc-options: -Wall -O2 -Wall -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       base >=4.7 && <5
     , aeson
     , aeson-pretty
+    , async
     , blaze-html
     , bytestring
     , charlotte
     , containers
+    , digestive-functors
+    , digestive-functors-blaze
     , directory
     , filepath
     , http-types
@@ -75,6 +83,7 @@ executable paseo
     , network-uri
     , process
     , scotty
+    , stm
     , sqlite-simple
     , tagsoup
     , tagsoup-selection
@@ -92,15 +101,18 @@ executable paseo-spider
   main-is: Spider.hs
   hs-source-dirs:
       app
-  ghc-options: -Wall -O2 -Wall -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -Wall -O2 -threaded -rtsopts -with-rtsopts=-N -O2
   build-depends:
       base >=4.7 && <5
     , aeson
     , aeson-pretty
+    , async
     , blaze-html
     , bytestring
     , charlotte
     , containers
+    , digestive-functors
+    , digestive-functors-blaze
     , directory
     , filepath
     , http-types
@@ -108,6 +120,7 @@ executable paseo-spider
     , network-uri
     , process
     , scotty
+    , stm
     , sqlite-simple
     , tagsoup
     , tagsoup-selection

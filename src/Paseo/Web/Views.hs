@@ -17,6 +17,7 @@ module Paseo.Web.Views
   , errorPage
   , dbDetail
   , pageDetail
+  , scanForm
   ) where
 import           Control.Monad                 (forM_)
 import           Data.Semigroup                ((<>))
@@ -26,6 +27,8 @@ import           Prelude                       hiding (div, head, id)
 import           Text.Blaze.Html.Renderer.Text (renderHtml)
 import           Text.Blaze.Html5              hiding (map)
 import           Text.Blaze.Html5.Attributes   hiding (title)
+
+
 
 baseLayout :: Html -> Html -> Html
 baseLayout extraHead bodyContent = docTypeHtml $ do
@@ -88,3 +91,9 @@ pageDetail mdb pageHref metaTags = renderHtml $ baseLayout mempty $ do
   h3 ("Viewing Page: " >> toHtml pageHref)
   h3 "Page MetaTags"
   ul $ forM_ metaTags (li . toHtml)
+
+
+-- scanForm :: Text
+scanForm form = renderHtml $ baseLayout mempty $ do
+  h3 "Site Scan Config"
+  form

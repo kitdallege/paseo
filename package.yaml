@@ -12,16 +12,18 @@ extra-source-files:
 ghc-options:
 - -Wall
 - -O2
-- -Wall
 
 dependencies:
 - base >=4.7 && <5
 - aeson
 - aeson-pretty
+- async
 - blaze-html
 - bytestring
 - charlotte
 - containers
+- digestive-functors
+- digestive-functors-blaze
 - directory
 - filepath
 - http-types
@@ -29,6 +31,7 @@ dependencies:
 - network-uri
 - process
 - scotty
+- stm
 - sqlite-simple
 - tagsoup
 - tagsoup-selection

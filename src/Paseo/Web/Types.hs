@@ -19,7 +19,11 @@ module Paseo.Web.Types
   ) where
 import           Control.Monad.Reader (MonadIO, MonadReader, ReaderT,
                                        runReaderT)
+import Data.Semigroup ((<>))
 import           Data.Text            (Text)
+import Control.Concurrent.Async
+import Control.Concurrent.STM.TVar
+import Data.Vector
 
 
 data Config = Config
@@ -31,7 +35,11 @@ data Environment = Env
   {
     envConfig :: Config
   , envPort :: Int
-  } deriving (Eq, Read, Show)
+  , envSpiders :: TVar [Async FilePath]
+  } deriving (Eq)
+
+instance Show Environment where
+  show e = "Env {envConfig=" <> show (envConfig e) <> ", envPort=" <> show (envPort e) <> "}"
 
 newtype AppM a = AppM
   { unAppM :: ReaderT Environment IO a

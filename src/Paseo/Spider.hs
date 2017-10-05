@@ -6,6 +6,7 @@ module Paseo.Spider
   (
     main
   , mainDb
+  , scanSite
   ) where
 -- import           Prelude                     (Eq, IO, Int, Integer, Ord, Show,
 --                                               String, filter, length, map,
@@ -24,6 +25,8 @@ import           GHC.Generics                (Generic)
 import           System.IO                   (BufferMode (..), Handle,
                                               IOMode (..), hSetBuffering,
                                               stdout, withFile)
+import Data.Text (Text)
+import qualified Data.Text as T
 -- html handling
 import           Network.URI                 (URI (..))
 import qualified Network.URI                 as URI
@@ -53,11 +56,11 @@ data MetaTag = MetaTag {
 } deriving (Show, Generic)
 
 data PageData = PageData {
-    pagePath  :: !String
-  , pageLinks :: ![String]
-  , pageDepth :: !Int
-  , pageRef   :: !String
-  , pageMeta  :: ![MetaTag]
+    pagePath    :: !String
+  , pageLinks   :: ![String]
+  , pageDepth   :: !Int
+  , pageRef     :: !String
+  , pageMeta    :: ![MetaTag]
   , pageMetrics :: ![Metric]
 } deriving (Show, Generic)
 
@@ -100,6 +103,23 @@ main = do
   timestamp <- show . (round :: POSIXTime -> Integer) <$> getPOSIXTime :: IO String
   mainDb timestamp
   -- mainJson timestamp
+
+
+scanSite :: Text -> Int -> IO FilePath
+scanSite url depth = do
+  -- hSetBuffering stdout LineBuffering
+  timestamp <- show . (round :: POSIXTime -> Integer) <$> getPOSIXTime :: IO String
+  withConnection ("/tmp/paseo/" <> (show timestamp) <> ".db") $ \conn -> do
+    putStrLn "Migrating db."
+    mapM_ (execute_ conn) dropTableStmts
+    mapM_ (execute_ conn) createTableStmts
+    putStrLn "Migrations complete."
+    _ <- runSpider siteMapSpider
+        {
+          _startUrl = (Page 1 "START", (T.unpack url))
+        , _load = Just (loadSqliteDb conn)
+        }
+    return $ (show timestamp) <> ".db"
 
 
 mainJson :: String -> IO ()

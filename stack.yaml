@@ -39,11 +39,15 @@ packages:
 - .
 - location:
     git: https://github.com/kitdallege/charlotte.git
-    commit: 8eba9ae892dd37cbc56043846d6a1b3c05c44e42
+    commit: 072137194b8a3b5b932e57f8acb4696a4e0f3058
   extra-dep: true
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
+- digestive-functors-0.8.2.0
+- digestive-functors-blaze-0.6.1.0
+- blaze-html-0.8.1.3
+- blaze-markup-0.7.1.1
 - tagsoup-0.13.10
 - tagsoup-selection-0.1.0.1
 
