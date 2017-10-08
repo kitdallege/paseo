@@ -2,11 +2,11 @@
     <div .container>
         <div .row>
             <h1 .header>
-                Yesod—a modern framework for blazing fast websites
+                Paseo—an SEO tool for hackers.
             <h2>
-                Fast, stable & spiced with great community
-            <a href="http://www.yesodweb.com/book/" .btn.btn-info.btn-lg>
-                Read the Book
+                See your website through the eyes of a spider.
+            <a href="/scan/" .btn.btn-info.btn-lg>
+                Scan Site Now
 
 <div .container>
     <!-- Starting

@@ -1,4 +1,3 @@
-.masthead,
 .navbar {
     background-color: rgb(27, 28, 29);
 }
@@ -17,6 +16,7 @@
     color: white;
     text-align: center;
     min-height: 500px;
+    background-color: #333;
 }
 
 .masthead .header {
@@ -70,4 +70,26 @@
 
 #message {
     margin-bottom: 40px;
+}
+
+.navbar-fixed-left {
+  width: 140px;
+  position: fixed;
+  border-radius: 0;
+  height: 100%;
+}
+
+.navbar-fixed-left .navbar-nav > li {
+  float: none;  /* Cancel default li float: left */
+  width: 139px;
+}
+
+.navbar-fixed-left + .container {
+  padding-left: 160px;
+}
+
+/* On using dropdown menu (To right shift popuped) */
+.navbar-fixed-left .navbar-nav > li > .dropdown-menu {
+  margin-top: -50px;
+  margin-left: 140px;
 }

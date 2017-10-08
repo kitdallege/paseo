@@ -97,35 +97,29 @@ instance Yesod App where
         (title, parents) <- breadcrumbs
 
         -- Define the menu items of the header.
-        let menuItems =
-                [ NavbarLeft $ MenuItem
+        let navbarMenuItems =
+                [ MenuItem
                     { menuItemLabel = "Home"
                     , menuItemRoute = HomeR
                     , menuItemAccessCallback = True
                     }
-                , NavbarLeft $ MenuItem
+                , MenuItem
                     { menuItemLabel = "Profile"
                     , menuItemRoute = ProfileR
                     , menuItemAccessCallback = isJust muser
                     }
-                , NavbarRight $ MenuItem
+                , MenuItem
                     { menuItemLabel = "Login"
                     , menuItemRoute = AuthR LoginR
                     , menuItemAccessCallback = isNothing muser
                     }
-                , NavbarRight $ MenuItem
+                , MenuItem
                     { menuItemLabel = "Logout"
                     , menuItemRoute = AuthR LogoutR
                     , menuItemAccessCallback = isJust muser
                     }
                 ]
-
-        let navbarLeftMenuItems = [x | NavbarLeft x <- menuItems]
-        let navbarRightMenuItems = [x | NavbarRight x <- menuItems]
-
-        let navbarLeftFilteredMenuItems = [x | x <- navbarLeftMenuItems, menuItemAccessCallback x]
-        let navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
-
+        let navbarFilteredMenuItems = [x | x <- navbarMenuItems, menuItemAccessCallback x]
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
         -- default-layout-wrapper is the entire page. Since the final
