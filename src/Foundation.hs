@@ -104,6 +104,11 @@ instance Yesod App where
                     , menuItemAccessCallback = True
                     }
                 , MenuItem
+                    { menuItemLabel = "Scans"
+                    , menuItemRoute = ScansR ScanListR
+                    , menuItemAccessCallback = True
+                    }
+                , MenuItem
                     { menuItemLabel = "Profile"
                     , menuItemRoute = ProfileR
                     , menuItemAccessCallback = isJust muser
@@ -144,6 +149,10 @@ instance Yesod App where
 
     isAuthorized ProfileR _ = isAuthenticated
 
+    isAuthorized (ScansR _)  _ = return Authorized
+    -- isAuthorized (ScansR (ScanDetailR _))  _ = return Authorized
+
+
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
     -- expiration dates to be set far in the future without worry of
@@ -177,6 +186,10 @@ instance YesodBreadcrumbs App where
   breadcrumb HomeR = return ("Home", Nothing)
   breadcrumb (AuthR _) = return ("Login", Just HomeR)
   breadcrumb ProfileR = return ("Profile", Just HomeR)
+  breadcrumb (ScansR ScanListR) = return ("Scans", Just HomeR)
+  breadcrumb (ScansR (ScanDetailR _)) = return ("Scan Detail", Just (ScansR ScanListR))
+  breadcrumb (ScansR (ScanPageDetailR d _)) = return ("Scan Detail", Just (ScansR (ScanDetailR d)))
+
   breadcrumb  _ = return ("home", Nothing)
 
 -- How to run database actions.
@@ -208,7 +221,7 @@ instance YesodAuth App where
                 }
 
     -- You can add other plugins like Google Email, email or OAuth here
-    authPlugins app = [authOpenId Claimed []] ++ extraAuthPlugins
+    authPlugins app = [authOpenId Claimed []] <> extraAuthPlugins
         -- Enable authDummy login if enabled.
         where extraAuthPlugins = [authDummy | appAuthDummyLogin $ appSettings app]
 

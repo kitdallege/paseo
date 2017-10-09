@@ -1,11 +1,11 @@
 
 <!-- Static navbar -->
 <nav .navbar.navbar-fixed-left>
-    <a .navbar-brand href="@{HomeR}">Paseo
-        <ul .nav.navbar-nav>
-            $forall MenuItem label route _ <- navbarFilteredMenuItems
-                <li :Just route == mcurrentRoute:.active>
-                    <a href="@{route}">#{label}
+    <a .navbar-brand href="@{HomeR}"> Paseo
+    <ul .nav.navbar-nav>
+        $forall MenuItem label route _ <- navbarFilteredMenuItems
+            <li :Just route == mcurrentRoute:.active>
+                <a href="@{route}">#{label}
 
 <!-- Page Contents -->
 

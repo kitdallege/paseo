@@ -73,6 +73,7 @@ library
       Handler.Common
       Handler.Home
       Handler.Profile
+      Handler.Scans
       Import
       Import.NoFoundation
       Model

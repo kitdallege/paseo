@@ -1,0 +1,18 @@
+<div .container>
+  <div .bs-docs-section>
+    <div .row>
+      <div .col-lg-12>
+        <div .page-header>
+          <h1 #start>Previous Scans
+          <table class="table table-striped table-bordered table-hover table-condensed">
+            <thead>
+              <tr>
+                <th>Scan
+                <th>View
+            <tbody>
+              $forall file <- files
+                <tr>
+                  <td>#{file}
+                  <td>
+                    <a href="@{ScansR (ScanDetailR (pack file))}" .btn.btn-info.btn-xs>
+                      View

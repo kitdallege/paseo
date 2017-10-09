@@ -9,3 +9,8 @@
 /comments CommentR POST
 
 /profile ProfileR GET
+
+/scans ScansR:
+  /             ScanListR       GET
+  /#Text        ScanDetailR     GET
+  /#Text/#Int   ScanPageDetailR GET

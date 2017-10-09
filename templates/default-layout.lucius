@@ -2,8 +2,8 @@
     background-color: rgb(27, 28, 29);
 }
 
-.navbar-default .navbar-nav > .active > a {
-    background-color: transparent;
+.navbar-nav > .active > a {
+    background-color: #333333;
     border-bottom: 2px solid white;
 }
 
