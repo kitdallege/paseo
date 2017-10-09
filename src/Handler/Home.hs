@@ -8,6 +8,7 @@ module Handler.Home where
 import Import
 import Yesod.Form.Bootstrap3 (BootstrapFormLayout (..), renderBootstrap3)
 import Text.Julius (RawJS (..))
+import System.Directory (listDirectory)
 
 -- Define our data that will be used for creating the form.
 data FileForm = FileForm
@@ -22,6 +23,11 @@ data FileForm = FileForm
 -- The majority of the code you will write in Yesod lives in these handler
 -- functions. You can spread them across multiple files if you are so
 -- inclined, or create a single monolithic file.
+
+{-
+ Maybe the homepage should just be an informative landing page.
+ Then the table of previous scans would be on their own Route
+-}
 getHomeR :: Handler Html
 getHomeR = do
     (formWidget, formEnctype) <- generateFormPost sampleForm
@@ -30,7 +36,8 @@ getHomeR = do
     defaultLayout $ do
         let (commentFormId, commentTextareaId, commentListId) = commentIds
         aDomId <- newIdent
-        setTitle "Welcome To Yesod!"
+        files <- liftIO $ listDirectory "/tmp/paseo"
+        setTitle "Welcome To Paseo!"
         $(widgetFile "homepage")
 
 postHomeR :: Handler Html
@@ -43,6 +50,7 @@ postHomeR = do
 
     defaultLayout $ do
         let (commentFormId, commentTextareaId, commentListId) = commentIds
+            files = mempty :: [FilePath]
         aDomId <- newIdent
         setTitle "Welcome To Yesod!"
         $(widgetFile "homepage")

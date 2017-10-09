@@ -60,6 +60,7 @@ library
     , case-insensitive
     , wai
     , foreign-store
+    , directory
   if (flag(dev)) || (flag(library-only))
     ghc-options: -Wall -fwarn-tabs -O0
     cpp-options: -DDEVELOPMENT
@@ -123,6 +124,7 @@ executable paseo
     , case-insensitive
     , wai
     , foreign-store
+    , directory
     , paseo
   if flag(library-only)
     buildable: False
@@ -175,6 +177,7 @@ test-suite test
     , case-insensitive
     , wai
     , foreign-store
+    , directory
     , paseo
     , hspec >=2.0.0
     , yesod-test
