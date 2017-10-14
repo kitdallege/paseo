@@ -6,26 +6,19 @@ module Paseo.Spider
   (
     main
   , scanSite
+  , printMigrations
   ) where
--- import           Prelude                     (Eq, IO, Int, Integer, Ord, Show,
---                                               String, filter, length, map,
---                                               mapM_, print, return, round, show,
---                                               succ, uncurry, ($), (.), (<),
---                                               (<$>), (==))
--- import Debug.Trace
 import           Control.Monad               (join)
 import qualified Data.ByteString.Lazy.Char8  as BSL
 import           Data.Either                 (Either (..))
 import qualified Data.Map.Strict             as Map
---import           Data.Maybe                  (Maybe (..), catMaybes, mapMaybe)
 import           Data.Semigroup              ((<>))
+import           Data.Text                   (Text)
 import           Data.Time.Clock.POSIX       (POSIXTime, getPOSIXTime)
 import           GHC.Generics                (Generic)
 import           System.IO                   (BufferMode (..), Handle,
                                               IOMode (..), hSetBuffering,
                                               stdout, withFile)
-import Data.Text (Text)
-import qualified Data.Text as T
 -- html handling
 import           Network.URI                 (URI (..))
 import qualified Network.URI                 as URI
@@ -36,13 +29,15 @@ import           Text.HTML.TagSoup.Tree      (TagTree, renderTree)
 import           Data.Aeson                  (ToJSON, encode)
 --import           Database.SQLite.Simple
 
-import Import
-import Control.Monad.Logger
+import           Control.Monad.Logger
+import           Import
 --import Control.Monad.Trans.Resource
-import Database.Persist.Sql (printMigration, runSqlConn)
-import Database.Persist.Sqlite (runSqlite, runMigration, withSqliteConn)
+import           Database.Persist.Sql        (SqlBackend, runSqlConn,
+                                              transactionSave)
+import           Database.Persist.Sqlite     (mockMigration, runMigration,
+                                              withSqliteConn)
 -- Library in the works
-import           Charlotte as C
+import           Charlotte                   as C
 import qualified Charlotte.Request           as Request
 import qualified Charlotte.Response          as CResponse
 
@@ -84,7 +79,7 @@ siteMapSpider :: SpiderDefinition PageType PageData
 siteMapSpider = SpiderDefinition {
     _name = "site-map-generator"
   , _startUrl = (ScrapedPage 1 "START", "http://local.lasvegassun.com/")
-  , _extract = parse
+  , _extract = parse 2
   , _transform = Just pipeline
   , _load = Nothing
 }
@@ -99,8 +94,8 @@ Right metaSelector = parseSelector "meta"
 crawlHostURI :: URI
 Just crawlHostURI = URI.parseURI "http://local.lasvegassun.com"
 
-maxDepth :: Int
-maxDepth = 2
+-- maxDepth :: Int
+-- maxDepth = 2
 
 main :: IO ()
 main = do
@@ -110,36 +105,25 @@ main = do
   -- mainDb timestamp
   -- mainJson timestamp
 
+printMigrations :: IO ()
+printMigrations = mockMigration migrateAllScan
 
 scanSite :: Text -> Int -> IO FilePath
 scanSite url depth = do
-  -- hSetBuffering stdout LineBuffering
   timestamp <- showIntegral . (round :: POSIXTime -> Integer) <$> getPOSIXTime :: IO String
-  let dbFile = ("/tmp/paseo/" <> pack timestamp <> ".db")
-  -- TODO: Convert this to accepting the connection so we can hand it to load
-  -- and it can in turn use it in a transactional mannor.
-  runResourceT . runStdoutLoggingT . withSqliteConn dbFile . runSqlConn $ do
-    printMigration migrateAllScan
+  let dbFile = "/tmp/paseo/" <> pack timestamp <> ".db"
+  --runNoLoggingT/runStdoutLoggingT
+  runResourceT . runNoLoggingT . withSqliteConn dbFile $ \conn-> do
     putStrLn "Performing Migrations"
-    --runMigration migrateAllScan
+    _ <- runSqlConn (runMigration migrateAllScan) conn
     putStrLn "Migrations Complete."
     _ <- liftIO $ runSpider siteMapSpider
           {
-            _startUrl = (ScrapedPage 1 "START", (T.unpack url))
-          , _load = Nothing -- Just (loadSqliteDb conn)
+            _startUrl = (ScrapedPage 1 "START", unpack url)
+          , _extract = parse depth
+          , _load = Just (loadSqliteDb conn)
           }
     return $ "/tmp/paseo/" <> pack timestamp <> ".db"
-  --   putStrLn "Migrating db."
-  --   mapM_ (execute_ conn) dropTableStmts
-  --   mapM_ (execute_ conn) createTableStmts
-  --   putStrLn "Migrations complete."
-  --   _ <- runSpider siteMapSpider
-  --       {
-  --         _startUrl = (Page 1 "START", (T.unpack url))
-  --       , _load = Just (loadSqliteDb conn)
-  --       }
-
-
 
 mainJson :: String -> IO ()
 mainJson filenamePart =
@@ -154,8 +138,8 @@ mainJson filenamePart =
 --     mapM_ (execute_ conn) createTableStmts
 --     runSpider siteMapSpider {_load = Just (loadSqliteDb conn)}
 
-parse :: PageType -> C.Response -> [ParseResult]
-parse (ScrapedPage depth ref) resp = let
+parse :: Int -> PageType -> C.Response -> [ParseResult]
+parse maxDepth (ScrapedPage depth ref) resp = let
   nextDepth = succ depth
   tagTree = parseTagTree resp
   links = parseLinks tagTree
@@ -210,72 +194,34 @@ pipeline page = do
 loadJsonLinesFile :: ToJSON a => Handle -> a -> IO ()
 loadJsonLinesFile fh item = BSL.hPutStrLn fh (encode item)
 
--- -- SQL
--- loadSqliteDb :: Connection -> PageData -> IO ()
--- loadSqliteDb conn PageData{..} = do
---   withTransaction conn $ do
---     pid <- addPage pagePath
---     print $ "pid: " <> show pid
---     mapM_ (addPageLink pid pageDepth pageRef) pageLinks
---     mapM_ (addPageMeta pid) pageMeta
---   print $ "Inserted (" <> show (length pageLinks) <> ") page_links!"
---   print $ "Inserted (" <> show (length pageMeta) <> ") page_meta!"
---   where
---     addPage page = do
---       execute conn insertPageStmt (Only page) -- TODO: UPSERT
---       -- for whatever reason lastInsertRowId was unreliable.
---       pid <- query conn "SELECT id FROM pages WHERE page = (?)" (Only page) :: IO [Only Int]
---       case pid of
---         []    -> return (-1)
---         [x]   -> return $ fromOnly x
---         (x:_) -> return $ fromOnly x
---     addPageLink pid depth ref link  = do
---       lid <- addPage link
---       rid <- addPage ref
---       execute conn insertPageLinkStmt (pid, lid, depth, rid)
---     addPageMeta pid pm = do
---         print $ "addPageMeta: pid:" <> show pid
---         execute conn insertPageMetaStmt (pid, metaTagRepr pm)
---         pmid <- lastInsertRowId conn
---         mapM_ (uncurry (addMetaAttr pmid)) $ Map.toList $ metaTagAttrs pm
---     addMetaAttr mid k v = execute conn insertPageMetaAttrsStmt (mid, k, v)
 
---
--- createTableStmts, dropTableStmts :: [Query]
--- dropTableStmts = [
---     "DROP TABLE IF EXISTS pages"
---   , "DROP TABLE IF EXISTS page_links"
---   , "DROP TABLE IF EXISTS page_meta"
---   , "DROP TABLE IF EXISTS meta_attrs"
---   ]
--- createTableStmts = [
---     "CREATE TABLE IF NOT EXISTS pages (\
---     \ id INTEGER PRIMARY KEY, \
---     \ page TEXT NOT NULL UNIQUE\
---     \)"
---   , "CREATE TABLE IF NOT EXISTS page_links (\
---     \ id INTEGER PRIMARY KEY, \
---     \ page INTEGER NOT NULL, \
---     \ link INTEGER NOT NULL, \
---     \ depth INTEGER NOT NULL, \
---     \ ref INTEGER NULL, \
---     \ FOREIGN KEY (page) REFERENCES pages(id) \
---     \ FOREIGN KEY (link) REFERENCES pages(id) \
---     \ FOREIGN KEY (ref) REFERENCES pages(id))"
---   , "CREATE TABLE IF NOT EXISTS page_meta (\
---     \ id INTEGER PRIMARY KEY, \
---     \ page INTEGER NOT NULL, \
---     \ repr TEXT  NOT NULL, \
---     \ FOREIGN KEY(page) REFERENCES pages(id))"
---   , "CREATE TABLE IF NOT EXISTS meta_attrs (\
---     \ id INTEGER PRIMARY KEY, \
---     \ meta INTEGER, \
---     \ name TEXT, \
---     \ value TEXT,\
---     \ FOREIGN KEY(meta) REFERENCES page_meta(id))"
---   ]
--- insertPageStmt, insertPageLinkStmt, insertPageMetaStmt, insertPageMetaAttrsStmt :: Query
--- insertPageStmt = "INSERT OR IGNORE INTO pages (page) VALUES (?)"
--- insertPageLinkStmt = "INSERT INTO page_links (page, link, depth, ref) VALUES (?,?,?,?)"
--- insertPageMetaStmt = "INSERT INTO page_meta (page, repr) VALUES (?, ?)"
--- insertPageMetaAttrsStmt = "INSERT INTO meta_attrs (meta, name, value) VALUES (?,?,?)"
+loadSqliteDb :: SqlBackend -> PageData -> IO ()
+loadSqliteDb conn PageData{..} = do
+  --addPage pagePath
+  pid <- addPage pagePath
+  print $ "pageId: " <> show pid
+  mapM_ (addPageLink pid pageDepth pageRef) pageLinks
+  mapM_ (addPageMeta pid) pageMeta
+  doSql transactionSave
+  print $ "Inserted (" <> show (length pageLinks) <> ") page_links!"
+  print $ "Inserted (" <> show (length pageMeta) <> ") page_meta!"
+  return ()
+    where
+      doSql :: ReaderT SqlBackend IO a -> IO a
+      doSql = flip runSqlConn conn
+      addPage :: String -> IO (Key Page)
+      addPage p = do
+        r <- doSql $ upsert (Page (pack p)) []
+        return $ entityKey r
+      addPageLink pid depth ref link  = do
+        lid <- addPage link
+        rid <- addPage ref
+        _ <- doSql $ insert (PageLink pid lid depth rid)
+        return ()
+      addPageMeta pid pm = do
+        pmid <- doSql $ insert (PageMeta pid (pack (metaTagRepr pm)))
+        mapM_ (uncurry (addMetaAttr pmid)) $ Map.toList $ metaTagAttrs pm
+        return ()
+      addMetaAttr mid k v = do
+        _ <- doSql $ insert (MetaAttr mid (pack k) (pack v))
+        return ()
