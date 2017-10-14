@@ -48,6 +48,12 @@ dependencies:
 # user added
 - foreign-store
 - directory
+- charlotte
+- aeson-pretty
+- process
+- network-uri
+- tagsoup
+- tagsoup-selection
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

@@ -61,6 +61,12 @@ library
     , wai
     , foreign-store
     , directory
+    , charlotte
+    , aeson-pretty
+    , process
+    , network-uri
+    , tagsoup
+    , tagsoup-selection
   if (flag(dev)) || (flag(library-only))
     ghc-options: -Wall -fwarn-tabs -O0
     cpp-options: -DDEVELOPMENT
@@ -77,6 +83,8 @@ library
       Import
       Import.NoFoundation
       Model
+      Paseo.Spider
+      Paseo.Spider.VnuValidation
       Settings
       Settings.StaticFiles
   default-language: Haskell2010
@@ -126,6 +134,12 @@ executable paseo
     , wai
     , foreign-store
     , directory
+    , charlotte
+    , aeson-pretty
+    , process
+    , network-uri
+    , tagsoup
+    , tagsoup-selection
     , paseo
   if flag(library-only)
     buildable: False
@@ -179,6 +193,12 @@ test-suite test
     , wai
     , foreign-store
     , directory
+    , charlotte
+    , aeson-pretty
+    , process
+    , network-uri
+    , tagsoup
+    , tagsoup-selection
     , paseo
     , hspec >=2.0.0
     , yesod-test
