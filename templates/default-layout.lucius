@@ -1,5 +1,6 @@
 .navbar {
     background-color: rgb(27, 28, 29);
+    backface-visibility: hidden;
 }
 
 .navbar-nav > .active > a {

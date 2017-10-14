@@ -1,0 +1,29 @@
+Page
+    page Text
+    UniquePage page
+    deriving Show Typeable
+    deriving Eq
+PageLink
+    page PageId
+    link PageId
+    depth Int
+    ref PageId
+    deriving Show
+PageMeta
+    page PageId
+    repr Text
+    deriving Show
+MetaAttr
+    meta PageMetaId
+    name Text
+    value Text
+    deriving Show
+ScanInfo
+    date Day
+    time TimeOfDay
+    duration Int
+    depth Int
+    numPagesSeen Int
+    deriving Show
+
+ -- By default this file is used in Model.hs (which is imported by Foundation.hs)
