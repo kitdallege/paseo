@@ -10,10 +10,12 @@
               <tr>
                 <th>Page
                 <th># of Inbound Links
+                <th>Details
             <tbody>
-              $forall page <- pages
+              $forall (Entity pid p, num) <- pages
                 <tr>
-                  <td>#{snd page}
+                  <td>#{pagePage p}
+                  <td>#{num}
                   <td>
-                    <a href="@{ScansR (ScanPageDetailR scanId (fst page))}" .btn.btn-info.btn-xs>
+                    <a href="@{ScansR (ScanPageDetailR scanId (fromIntegral (fromSqlKey pid)))}" .btn.btn-info.btn-xs>
                       View

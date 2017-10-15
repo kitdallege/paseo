@@ -3,5 +3,21 @@
     <div .row>
       <div .col-lg-12>
         <div .page-header>
-          <h1 #start>Scan #{scanId}
-          <h2>Page #{pageName}
+          <h1 #start>Scan:
+            <a href="@{ScansR (ScanDetailR scanId)}">
+              #{scanId}
+          <h2>Page
+            <a href="@{ScansR (ScanPageDetailR scanId pageId)}">
+              "#{pagePage page}"
+          <table class="table table-striped table-bordered table-hover table-condensed">
+            <thead>
+              <tr>
+                <th>Page
+                <th>Info
+            <tbody>
+              $forall (Entity mid m) <- metaTags
+                <tr>
+                  <td>#{pageMetaRepr m}
+                  <td>
+                    <a href="" .btn.btn-info.btn-xs>
+                      View
