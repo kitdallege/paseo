@@ -108,12 +108,12 @@ main = do
 printMigrations :: IO ()
 printMigrations = mockMigration migrateAllScan
 
-scanSite :: Text -> Int -> IO FilePath
-scanSite url depth = do
-  timestamp <- showIntegral . (round :: POSIXTime -> Integer) <$> getPOSIXTime :: IO String
-  let dbFile = "/tmp/paseo/" <> pack timestamp <> ".db"
+scanSite :: Text -> Text -> Int -> IO FilePath
+scanSite filename url depth = do
+  -- timestamp <- showIntegral . (round :: POSIXTime -> Integer) <$> getPOSIXTime :: IO String
+  -- let dbFile = "/tmp/paseo/" <> pack timestamp <> ".db"
   --runNoLoggingT/runStdoutLoggingT
-  runResourceT . runNoLoggingT . withSqliteConn dbFile $ \conn-> do
+  runResourceT . runNoLoggingT . withSqliteConn filename $ \conn-> do
     putStrLn "Performing Migrations"
     _ <- runSqlConn (runMigration migrateAllScan) conn
     putStrLn "Migrations Complete."
@@ -123,7 +123,7 @@ scanSite url depth = do
           , _extract = parse depth
           , _load = Just (loadSqliteDb conn)
           }
-    return $ "/tmp/paseo/" <> pack timestamp <> ".db"
+    return $ unpack filename
 
 mainJson :: String -> IO ()
 mainJson filenamePart =

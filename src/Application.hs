@@ -37,6 +37,11 @@ import Network.Wai.Middleware.RequestLogger (Destination (Logger),
 import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
                                              toLogStr)
 
+import System.Directory                     (getAppUserDataDirectory,
+                                             createDirectoryIfMissing)
+-- import           Control.Concurrent.STM
+import           Data.IntMap            (IntMap)
+import qualified Data.IntMap            as IntMap
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
 import Handler.Common
@@ -64,6 +69,8 @@ makeFoundation appSettings = do
         (if appMutableStatic appSettings then staticDevel else static)
         (appStaticDir appSettings)
 
+    appScans <- newTVarIO IntMap.empty :: IO (TVar (IntMap (Async FilePath)))
+    appNextScan <- newTVarIO 1
     -- We need a log function to create a connection pool. We need a connection
     -- pool to create our foundation. And we need our foundation to get a
     -- logging function. To get out of this loop, we initially create a
@@ -84,6 +91,11 @@ makeFoundation appSettings = do
     -- Perform database migration using our application's logging settings.
     runLoggingT (runSqlPool (runMigration migrateAll) pool) logFunc
 
+    -- Create storage dir for application data if it does not exist.
+    dataDir <- case appStoragePath appSettings of
+        Nothing -> getAppUserDataDirectory "paseo"
+        Just path -> return path
+    createDirectoryIfMissing True dataDir
     -- Return the foundation
     return $ mkFoundation pool
 

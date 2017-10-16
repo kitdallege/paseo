@@ -32,6 +32,9 @@ data App = App
     , appConnPool    :: ConnectionPool -- ^ Database connection pool.
     , appHttpManager :: Manager
     , appLogger      :: Logger
+    -- User added
+    , appScans :: TVar (IntMap (Async FilePath))
+    , appNextScan :: TVar Int
     }
 
 data MenuItem = MenuItem
@@ -187,8 +190,10 @@ instance YesodBreadcrumbs App where
   breadcrumb (AuthR _) = return ("Login", Just HomeR)
   breadcrumb ProfileR = return ("Profile", Just HomeR)
   breadcrumb (ScansR ScanListR) = return ("Scans", Just HomeR)
+  breadcrumb (ScansR ScanNewR) = return ("New Scan", Just HomeR)
   breadcrumb (ScansR (ScanDetailR _)) = return ("Scan Detail", Just (ScansR ScanListR))
-  breadcrumb (ScansR (ScanPageDetailR d _)) = return ("Scan Detail", Just (ScansR (ScanDetailR d)))
+  breadcrumb (ScansR (ScanPageDetailR d _)) = return ("Page Detail", Just (ScansR (ScanDetailR d)))
+  breadcrumb (ScansR (ScanPageMetaDetailR d p _)) = return ("Page Detail", Just (ScansR (ScanPageDetailR d p)))
 
   breadcrumb  _ = return ("home", Nothing)
 

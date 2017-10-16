@@ -61,6 +61,8 @@ data AppSettings = AppSettings
 
     , appAuthDummyLogin         :: Bool
     -- ^ Indicate if auth dummy login should be enabled.
+    , appStoragePath            :: Maybe String
+    -- ^ Path where application data will be stored.
     }
 
 instance FromJSON AppSettings where
@@ -89,6 +91,7 @@ instance FromJSON AppSettings where
 
         appAuthDummyLogin         <- o .:? "auth-dummy-login"      .!= defaultDev
 
+        appStoragePath            <- o .:? "storage-path"
         return AppSettings {..}
 
 -- | Settings for 'widgetFile', such as which template languages to support and

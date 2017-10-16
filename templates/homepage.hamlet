@@ -5,7 +5,7 @@
                 Paseo—an SEO tool for hackers.
             <h2>
                 See your website through the eyes of a spider.
-            <a href="/scan/" .btn.btn-info.btn-lg>
+            <a href="@{ScansR(ScanNewR)}" .btn.btn-info.btn-lg>
                 Scan Site Now
 
 <div .container>
@@ -15,8 +15,6 @@
         <div .row>
             <div .col-lg-12>
                 <div .page-header>
-                    $forall file <- files
-                        <div> #{file}
                     <h1 #start>Starting
 
                     <p>

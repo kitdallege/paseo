@@ -11,6 +11,8 @@
 /profile ProfileR GET
 
 /scans ScansR:
-  /             ScanListR       GET
-  /#Text        ScanDetailR     GET
-  /#Text/#Int   ScanPageDetailR GET
+  /                ScanListR            GET
+  !/new            ScanNewR             GET POST
+  /#Text           ScanDetailR          GET
+  /#Text/#Int      ScanPageDetailR      GET
+  /#Text/#Int/#Int ScanPageMetaDetailR  GET
