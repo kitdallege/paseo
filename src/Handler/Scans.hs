@@ -106,7 +106,7 @@ postScanNewR = do
                 appScans' <- readTVar appScans
                 writeTVar appScans $ IntMap.insert jobId spider appScans'
                 return jobId
-            defaultLayout [whamlet|<p>#{show res} JobId: #{show jobId}|]
+            defaultLayout [whamlet|<p>#{show res} JobId: #{show scanId}|]
         _ -> defaultLayout
             [whamlet|
                 <form method=post action=@{ScansR(ScanNewR)} enctype=#{enctype}>

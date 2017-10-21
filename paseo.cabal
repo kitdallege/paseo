@@ -81,11 +81,13 @@ library
       Handler.Home
       Handler.Profile
       Handler.Scans
+      Handler.WFind
       Import
       Import.NoFoundation
       Model
       Paseo.Spider
       Paseo.Spider.VnuValidation
+      Paseo.WFind
       Queries
       Settings
       Settings.StaticFiles

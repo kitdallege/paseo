@@ -112,6 +112,16 @@ instance Yesod App where
                     , menuItemAccessCallback = True
                     }
                 , MenuItem
+                    { menuItemLabel = "Scan Now "
+                    , menuItemRoute = ScansR ScanNewR
+                    , menuItemAccessCallback = True
+                    }
+                , MenuItem
+                    { menuItemLabel = "WFind"
+                    , menuItemRoute = WFindR
+                    , menuItemAccessCallback = True
+                    }
+                , MenuItem
                     { menuItemLabel = "Profile"
                     , menuItemRoute = ProfileR
                     , menuItemAccessCallback = isJust muser
@@ -154,7 +164,7 @@ instance Yesod App where
 
     isAuthorized (ScansR _)  _ = return Authorized
     -- isAuthorized (ScansR (ScanDetailR _))  _ = return Authorized
-
+    isAuthorized WFindR _ = return Authorized
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -194,7 +204,7 @@ instance YesodBreadcrumbs App where
   breadcrumb (ScansR (ScanDetailR _)) = return ("Scan Detail", Just (ScansR ScanListR))
   breadcrumb (ScansR (ScanPageDetailR d _)) = return ("Page Detail", Just (ScansR (ScanDetailR d)))
   breadcrumb (ScansR (ScanPageMetaDetailR d p _)) = return ("Page Detail", Just (ScansR (ScanPageDetailR d p)))
-
+  breadcrumb WFindR = return ("WFind", Just HomeR)
   breadcrumb  _ = return ("home", Nothing)
 
 -- How to run database actions.

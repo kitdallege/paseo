@@ -16,3 +16,5 @@
   /#Text           ScanDetailR          GET
   /#Text/#Int      ScanPageDetailR      GET
   /#Text/#Int/#Int ScanPageMetaDetailR  GET
+
+/wfind WFindR GET POST
