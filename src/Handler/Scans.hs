@@ -100,12 +100,15 @@ postScanNewR = do
                     (filepath <> ".db")
                     (scanFormUrl res)
                     (scanFormDepth res)
-            scanId <- liftIO $ atomically $ do
-                jobId <- readTVar appNextScan
-                modifyTVar' appNextScan succ
-                appScans' <- readTVar appScans
-                writeTVar appScans $ IntMap.insert jobId spider appScans'
-                return jobId
+            scanId <- liftIO $ do
+                chan <- newTChanIO
+                scanId <- atomically $ do
+                    jobId <- readTVar appNextScan
+                    modifyTVar' appNextScan succ
+                    appScans' <- readTVar appScans
+                    writeTVar appScans $ IntMap.insert jobId chan appScans'
+                    return jobId
+                return scanId
             defaultLayout [whamlet|<p>#{show res} JobId: #{show scanId}|]
         _ -> defaultLayout
             [whamlet|

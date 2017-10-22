@@ -33,7 +33,7 @@ data App = App
     , appHttpManager :: Manager
     , appLogger      :: Logger
     -- User added
-    , appScans :: TVar (IntMap (Async FilePath))
+    , appScans :: TVar (IntMap (TChan (Maybe Text)))
     , appNextScan :: TVar Int
     }
 
@@ -121,21 +121,21 @@ instance Yesod App where
                     , menuItemRoute = WFindR
                     , menuItemAccessCallback = True
                     }
-                , MenuItem
-                    { menuItemLabel = "Profile"
-                    , menuItemRoute = ProfileR
-                    , menuItemAccessCallback = isJust muser
-                    }
-                , MenuItem
-                    { menuItemLabel = "Login"
-                    , menuItemRoute = AuthR LoginR
-                    , menuItemAccessCallback = isNothing muser
-                    }
-                , MenuItem
-                    { menuItemLabel = "Logout"
-                    , menuItemRoute = AuthR LogoutR
-                    , menuItemAccessCallback = isJust muser
-                    }
+                -- , MenuItem
+                --     { menuItemLabel = "Profile"
+                --     , menuItemRoute = ProfileR
+                --     , menuItemAccessCallback = isJust muser
+                --     }
+                -- , MenuItem
+                --     { menuItemLabel = "Login"
+                --     , menuItemRoute = AuthR LoginR
+                --     , menuItemAccessCallback = isNothing muser
+                --     }
+                -- , MenuItem
+                --     { menuItemLabel = "Logout"
+                --     , menuItemRoute = AuthR LogoutR
+                --     , menuItemAccessCallback = isJust muser
+                --     }
                 ]
         let navbarFilteredMenuItems = [x | x <- navbarMenuItems, menuItemAccessCallback x]
         -- We break up the default layout into two components:
@@ -165,6 +165,8 @@ instance Yesod App where
     isAuthorized (ScansR _)  _ = return Authorized
     -- isAuthorized (ScansR (ScanDetailR _))  _ = return Authorized
     isAuthorized WFindR _ = return Authorized
+    isAuthorized (WFindResultsR _) _ = return Authorized
+
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -205,6 +207,7 @@ instance YesodBreadcrumbs App where
   breadcrumb (ScansR (ScanPageDetailR d _)) = return ("Page Detail", Just (ScansR (ScanDetailR d)))
   breadcrumb (ScansR (ScanPageMetaDetailR d p _)) = return ("Page Detail", Just (ScansR (ScanPageDetailR d p)))
   breadcrumb WFindR = return ("WFind", Just HomeR)
+  breadcrumb (WFindResultsR _) = return ("WFind Results", Just WFindR)
   breadcrumb  _ = return ("home", Nothing)
 
 -- How to run database actions.

@@ -17,4 +17,5 @@
   /#Text/#Int      ScanPageDetailR      GET
   /#Text/#Int/#Int ScanPageMetaDetailR  GET
 
-/wfind WFindR GET POST
+/wfind/              WFindR GET POST
+/wfind/results/#Int WFindResultsR GET

@@ -85,8 +85,9 @@
   width: 139px;
 }
 
-.navbar-fixed-left + .container {
-  padding-left: 160px;
+.navbar-fixed-left + .container,
+.navbar-fixed-left ~ .container {
+  padding-left: 50px;
 }
 
 /* On using dropdown menu (To right shift popuped) */

@@ -68,6 +68,9 @@ library
     , tagsoup
     , tagsoup-selection
     , esqueleto
+    , stm
+    , wai-extra
+    , blaze-builder
   if (flag(dev)) || (flag(library-only))
     ghc-options: -Wall -fwarn-tabs -O0
     cpp-options: -DDEVELOPMENT
@@ -145,6 +148,9 @@ executable paseo
     , tagsoup
     , tagsoup-selection
     , esqueleto
+    , stm
+    , wai-extra
+    , blaze-builder
     , paseo
   if flag(library-only)
     buildable: False
@@ -205,6 +211,9 @@ test-suite test
     , tagsoup
     , tagsoup-selection
     , esqueleto
+    , stm
+    , wai-extra
+    , blaze-builder
     , paseo
     , hspec >=2.0.0
     , yesod-test

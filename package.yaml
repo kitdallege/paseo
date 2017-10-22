@@ -55,6 +55,9 @@ dependencies:
 - tagsoup
 - tagsoup-selection
 - esqueleto
+- stm
+- wai-extra
+- blaze-builder
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.
