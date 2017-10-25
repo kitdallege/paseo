@@ -51,6 +51,7 @@ data Message = Message
     { msgType         :: MessageType
     , msgUrl          :: Maybe Text
     , msgLastLine     :: Int
+    , msgFirstLine    :: Maybe Int
     , msgLastColumn   :: Int
     , msgFirstColumn  :: Maybe Int
     , msgSubType      :: Maybe MessageType

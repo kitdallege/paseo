@@ -1,17 +1,12 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RecordWildCards   #-}
 module Handler.Validate where
-import           Data.Aeson
-import qualified Data.ByteString.Lazy            as BSL
 import Import
 -- import Control.Concurrent.Async
 import Yesod.Form.Bootstrap3 (BootstrapFormLayout (..), renderBootstrap3)
-import Text.Julius (RawJS (..))
-import qualified Paseo.Spider.VnuValidation as Vnu
+import Paseo.Spider.VnuValidation hiding (test)
 
 newtype ValidationForm = ValidationForm{validationUrl :: Text} deriving (Show)
 
@@ -54,13 +49,50 @@ postValidateR = do
             let req' = req {requestHeaders = [("User-Agent", "Paseo(https://github.com/kitdallege/paseo)")]}
             resp <- httpLbs req'
             let body = responseBody resp
-            -- print (requestHeaders req)
-            results <- liftIO $ Vnu.vnuValidateBSL body
+            results <- liftIO $ vnuValidateBSL body
             case results of
                 Left err -> defaultLayout [whamlet|when it comes to coding ya you totally suck! #{show err}|]
-                Right vr -> do
-                    --liftIO $ BSL.putStr $ encode vr
-                    defaultLayout [whamlet|when it comes to coding ya you totally rock! <pre>#{show vr} </pre>|]
+                Right vr -> defaultLayout $ do
+                    let messages = toList (valResultsMessages vr) :: [Message]
+                    toWidget [whamlet|
+                        <div id="results">
+                            <ol>
+                                $forall msg <- messages
+                                    <li>
+                                        <p>
+                                            <strong>#{show (msgType msg)}
+                                            :
+                                            <span>#{msgMessage msg}
+                                            <p location>
+                                            From line
+                                            <span>
+                                                $maybe firstLine <- msgFirstLine msg
+                                                    #{firstLine}
+                                                $nothing
+                                                    #{msgLastLine msg}
+                                            , column
+                                            <span>
+                                                $maybe firstColumn <- msgFirstColumn msg
+                                                    #{firstColumn}
+                                                $nothing
+
+                                            ; to line
+                                            <span> #{msgLastLine msg}
+                                            , column
+                                            <span> #{msgLastColumn msg}
+                                            <p extract>
+                                            <code>
+                                                $maybe extract <- msgExtract msg
+                                                    #{extract}
+                                                $nothing
+                                                    ""
+                    |]
+                    toWidget [lucius|.results{}|]
+                    toWidget [julius|
+                        $(document).ready(function(){
+                            console.info('wubalubadubdub');
+                        });
+                    |]
         _ -> defaultLayout
                 [whamlet|
                 <p>
