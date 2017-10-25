@@ -63,7 +63,7 @@ postValidateR = do
                                             <strong>#{show (msgType msg)}
                                             :
                                             <span>#{msgMessage msg}
-                                            <p location>
+                                            <p class="location">
                                             From line
                                             <span>
                                                 $maybe firstLine <- msgFirstLine msg

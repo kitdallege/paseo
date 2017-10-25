@@ -122,7 +122,7 @@ instance Yesod App where
                     , menuItemAccessCallback = True
                     }
                 , MenuItem
-                    { menuItemLabel = "W3 ORG Validator"
+                    { menuItemLabel = "W3 Validator"
                     , menuItemRoute = ValidateR
                     , menuItemAccessCallback = True
                     }
@@ -215,7 +215,7 @@ instance YesodBreadcrumbs App where
   breadcrumb WFindR = return ("WFind", Just HomeR)
   breadcrumb (WFindResultsR _) = return ("WFind Results", Just WFindR)
   breadcrumb ValidateR = return ("Page Validator", Just HomeR)
-  breadcrumb  _ = return ("home", Nothing)
+  breadcrumb  _ = return ("Home", Nothing)
 
 -- How to run database actions.
 instance YesodPersist App where
