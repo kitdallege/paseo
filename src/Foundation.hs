@@ -93,7 +93,7 @@ instance Yesod App where
         master <- getYesod
         mmsg <- getMessage
 
-        muser <- maybeAuthPair
+        -- muser <- maybeAuthPair
         mcurrentRoute <- getCurrentRoute
 
         -- Get the breadcrumbs, as defined in the YesodBreadcrumbs instance.
@@ -119,6 +119,11 @@ instance Yesod App where
                 , MenuItem
                     { menuItemLabel = "WFind"
                     , menuItemRoute = WFindR
+                    , menuItemAccessCallback = True
+                    }
+                , MenuItem
+                    { menuItemLabel = "W3 ORG Validator"
+                    , menuItemRoute = ValidateR
                     , menuItemAccessCallback = True
                     }
                 -- , MenuItem
@@ -166,6 +171,7 @@ instance Yesod App where
     -- isAuthorized (ScansR (ScanDetailR _))  _ = return Authorized
     isAuthorized WFindR _ = return Authorized
     isAuthorized (WFindResultsR _) _ = return Authorized
+    isAuthorized ValidateR _ = return Authorized
 
 
     -- This function creates static content files in the static folder
@@ -208,6 +214,7 @@ instance YesodBreadcrumbs App where
   breadcrumb (ScansR (ScanPageMetaDetailR d p _)) = return ("Page Detail", Just (ScansR (ScanPageDetailR d p)))
   breadcrumb WFindR = return ("WFind", Just HomeR)
   breadcrumb (WFindResultsR _) = return ("WFind Results", Just WFindR)
+  breadcrumb ValidateR = return ("Page Validator", Just HomeR)
   breadcrumb  _ = return ("home", Nothing)
 
 -- How to run database actions.

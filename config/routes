@@ -11,11 +11,13 @@
 /profile ProfileR GET
 
 /scans ScansR:
-  /                ScanListR            GET
-  !/new            ScanNewR             GET POST
-  /#Text           ScanDetailR          GET
-  /#Text/#Int      ScanPageDetailR      GET
-  /#Text/#Int/#Int ScanPageMetaDetailR  GET
+  /                 ScanListR               GET
+  !/new             ScanNewR                GET POST
+  /#Text            ScanDetailR             GET
+  /#Text/#Int       ScanPageDetailR         GET
+  /#Text/#Int/#Int  ScanPageMetaDetailR     GET
 
-/wfind/              WFindR GET POST
-/wfind/results/#Int WFindResultsR GET
+/wfind/             WFindR                  GET POST
+/wfind/results/#Int WFindResultsR           GET
+
+/validate/          ValidateR            GET POST

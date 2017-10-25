@@ -92,34 +92,53 @@ postWFindR = do
             -- redirect $ WFindResultsR wfindId
             output <- newIdent
             defaultLayout $ do
-                toWidget [whamlet|<div ##{output}>|]
+                toWidget [whamlet|
+                    <table class="table table-striped table-bordered table-hover table-condensed">
+                        <thead>
+                            <th>Path
+                            <th>Pattern
+                            <th>Match Info
+                        <tfoot>
+                            <tr>
+                                <td colspan=2>Total Matches
+                                <td id="total-matches">
+                        <tbody>
+                            <tr>
+                                <td colspan=3>
+                                    <div class="scroller">
+                                        <table ##{output} class="table table-striped table-bordered table-hover table-condensed">
+                                            <tbody>
+
+                |]
                 -- Just some CSS
                 toWidget [lucius|
-                    ##{output} {
-                        width: 100%;
-                        height: 500px;
-                        border: 1px solid #999;
-                        overflow: auto;
-                    }
+                    .scroller {overflow-y:scroll; height: 750px;}
+                    ##{output} {width: 100%; border: 1px solid #999;}
+                    table.table > thead:first-child > tr:first-child > th:first-of-type {min-width: 250px; width: 59%;}
+                    div.scroller table.table tr td:nth-of-type(2) {min-width: 107px;}
+                    table.table tr td:first-of-type{width: 60%;}
+                    table.table tfoot td {font-size: 18px; font-weight: bold;}
                 |]
                 -- And now that Javascript
                 toWidgetBody [julius|
                     // Set up the receiving end
-                    var output = document.getElementById(#{toJSON output});
-                    var src = new EventSource("@{WFindResultsR wfindId}");
+                    var output = $("##{rawJS output} tbody");
+                        container = $("##{rawJS output}").parent(),
+                        totalMatches = 0,
+                        $totalMatches = $("#total-matches"),
+                        src = new EventSource("@{WFindResultsR wfindId}");
                     src.onmessage = function(msg) {
-                        if(!msg) {
-                            debugger
-                            src.close();
-                        }
-                        // This function will be called for each new message.
-                        var p = document.createElement("p");
-                        p.appendChild(document.createTextNode(msg.data));
-                        output.appendChild(p);
-
+                        var data = JSON.parse(msg.data);
+                        var $tr = $('<tr>');
+                        $tr.append($('<td>').text(data.path))
+                            .append($('<td>').text(JSON.stringify(data.pattern.pattern)))
+                            .append($('<td>').text(JSON.stringify(data.info)));
+                        output.append($tr);
                         // And now scroll down within the output div so the most recent message
                         // is displayed.
-                        output.scrollTop = output.scrollHeight;
+                        container.scrollTop(container[0].scrollHeight);
+                        totalMatches += 1;
+                        $totalMatches.text(totalMatches);
                     };
                     src.onerror = function(event){
                         if (event.eventPhase == EventSource.CLOSED) {

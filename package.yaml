@@ -51,6 +51,7 @@ dependencies:
 - charlotte
 - aeson-pretty
 - process
+- process-extras
 - network-uri
 - tagsoup
 - tagsoup-selection
@@ -58,6 +59,7 @@ dependencies:
 - stm
 - wai-extra
 - blaze-builder
+- word8
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

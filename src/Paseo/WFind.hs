@@ -9,7 +9,9 @@ module Paseo.WFind
     ) where
 
 import           Import
--- html handling
+import           Data.Aeson.Text
+import           Data.Aeson.Types hiding (parse, Result)
+import qualified Data.Char                  as Char
 --import           Control.Concurrent.STM
 import qualified Data.ByteString.Char8       as BS8
 import qualified Data.ByteString.Lazy.Char8  as BSL
@@ -21,7 +23,6 @@ import           Text.HTML.TagSoup.Tree      (TagTree)
 
 import           System.IO                   (BufferMode (..), hSetBuffering,
                                               stdout)
-
 -- Library in the works
 import           Charlotte                   as C
 import qualified Charlotte.Request           as Request
@@ -33,7 +34,16 @@ Right linkSelector = parseSelector "a"
 data SearchPattern = SearchPattern
     { spPattern     :: Text
     , spInvertMatch :: Bool
-    } deriving (Show)
+    } deriving (Show, Generic)
+
+instance ToJSON SearchPattern where
+    toJSON = genericToJSON (mkOptions 2)
+
+mkOptions :: Int -> Options
+mkOptions n = defaultOptions {fieldLabelModifier = lowerOne . drop n}
+  where
+    lowerOne (x:xs) = Char.toLower x : xs
+    lowerOne []     = ""
 
 data PageType = ScrapedPage Int Text
   deriving (Show, Eq, Ord, Generic)
@@ -44,12 +54,19 @@ data Match = Match
     , matchDepth   :: Int
     , matchRef     :: Text
     , matchInfo    :: [MatchInfo]
-    } deriving (Show)
+    } deriving (Show, Generic)
+
+instance ToJSON Match where
+    toJSON = genericToJSON (mkOptions 5)
 
 data MatchInfo = MatchInfo
     { matchInfoLine   :: Int
     , matchInfoColumn :: Int
-    } deriving (Show)
+    } deriving (Show, Generic)
+
+instance ToJSON MatchInfo where
+    toJSON = genericToJSON (mkOptions 9)
+
 
 siteSearchSpider :: SpiderDefinition PageType Match
 siteSearchSpider = let
@@ -67,13 +84,13 @@ wfind uri depth patterns chan = do
     hSetBuffering stdout LineBuffering
     let suri = unpack uri
         Just crawlHostURI = URI.parseURI suri
-    threadDelay 100000
     _ <- atomically $ writeTChan chan $ Just "Starting Search..."
     _ <- runSpider siteSearchSpider
         { _startUrl = (ScrapedPage 1 "START", suri)
         , _extract = parse depth patterns crawlHostURI
         , _load = Just (\x -> do
-                atomically $ writeTChan chan $ Just (pack $ show x)
+                let payload = encodeToLazyText x :: LText
+                atomically $ writeTChan chan $ Just (toStrict payload)
                 return ()
                 )
         }

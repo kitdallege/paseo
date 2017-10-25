@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Paseo.Spider.VnuValidation
   (
-    vnuValidate
+    vnuValidateBSL
   , ValidationResults(..)
   , Message(..)
   , MessageType
@@ -12,16 +12,23 @@ module Paseo.Spider.VnuValidation
 import           Data.Aeson
 import           Data.Aeson.Encode.Pretty
 import           Data.Aeson.Types
+import Data.Word8 (isSpace)
+import qualified Data.ByteString            as BS
+import qualified Data.ByteString.Char8      as BS8
 import qualified Data.ByteString.Lazy       as BSL
 import qualified Data.Char                  as Char
 import           Data.Semigroup             ((<>))
+import qualified Data.Text                  as T
+import qualified Data.Text.Encoding         as TE
+import qualified Data.Text.IO               as TIO
 import           Data.Text                  (Text)
 import qualified Data.Vector                as V
 import           GHC.Generics
 import           Prelude                    hiding (log)
 import           System.Exit
 import           System.IO
-import           System.Process
+import           System.Process             hiding (readCreateProcessWithExitCode)
+import           System.Process.ByteString.Lazy
 
 vnuJarFile :: String
 vnuJarFile = "/home/kit/vnu.jar"
@@ -29,37 +36,36 @@ vnuJarFile = "/home/kit/vnu.jar"
 -- java -jar ~/vnu.jar --format json /tmp/lvs-home.html 2>&1
 
 data MessageType =
-    MsgError
-  | MsgFatal
-  | MsgInfo
-  | MsgInternal
-  | MsgIO
-  | MsgNonDocument
-  | MsgSchema
-  | MsgWarning
-  deriving (Show, Eq, Ord, Enum, Generic)
+      MsgError
+    | MsgFatal
+    | MsgInfo
+    | MsgInternal
+    | MsgIO
+    | MsgNonDocument
+    | MsgSchema
+    | MsgWarning
+    deriving (Show, Eq, Ord, Enum, Generic)
 
 messageTypeOptions :: Options
 messageTypeOptions = defaultOptions {
               constructorTagModifier = map Char.toLower . drop 3}
 instance ToJSON MessageType where
-  toJSON = genericToJSON messageTypeOptions
+    toJSON = genericToJSON messageTypeOptions
 instance FromJSON MessageType where
     parseJSON = genericParseJSON messageTypeOptions
 
 data Message = Message
-  {
-    msgType         :: MessageType
-  , msgUrl          :: Maybe Text
-  , msgLastLine     :: Int
-  , msgLastColumn   :: Int
-  , msgFirstColumn  :: Int
-  , msgSubType      :: Maybe MessageType
-  , msgMessage      :: Text
-  , msgExtract      :: Text
-  , msgHiliteStart  :: Int
-  , msgHiliteLength :: Int
-  } deriving (Show, Eq, Ord, Generic)
+    { msgType         :: MessageType
+    , msgUrl          :: Maybe Text
+    , msgLastLine     :: Int
+    , msgLastColumn   :: Int
+    , msgFirstColumn  :: Maybe Int
+    , msgSubType      :: Maybe MessageType
+    , msgMessage      :: Text
+    , msgExtract      :: Maybe Text
+    , msgHiliteStart  :: Maybe Int
+    , msgHiliteLength :: Maybe Int
+    } deriving (Show, Eq, Ord, Generic)
 
 messageOptions :: Options
 messageOptions = defaultOptions {fieldLabelModifier = lowerOne . drop 3}
@@ -68,18 +74,17 @@ messageOptions = defaultOptions {fieldLabelModifier = lowerOne . drop 3}
     lowerOne []     = ""
 
 instance ToJSON Message where
-  toJSON = genericToJSON messageOptions
+    toJSON = genericToJSON messageOptions
 instance FromJSON Message where
-  parseJSON = genericParseJSON messageOptions
+    parseJSON = genericParseJSON messageOptions
 
 type Messages = V.Vector Message
 data ValidationResults = ValidationResults
-  {
-    valResultsMessages :: Messages
-  , valResultsUrl      :: Maybe Text
-  , valResultsSource   :: Maybe Text
-  , valResultsLanguage :: Maybe Text
-  } deriving (Show, Eq, Ord, Generic)
+    { valResultsMessages :: Messages
+    , valResultsUrl      :: Maybe Text
+    , valResultsSource   :: Maybe Text
+    , valResultsLanguage :: Maybe Text
+    } deriving (Show, Eq, Ord, Generic)
 
 validationResultsOptions :: Options
 validationResultsOptions = defaultOptions {
@@ -87,32 +92,41 @@ validationResultsOptions = defaultOptions {
             , omitNothingFields = True
           }
 instance ToJSON ValidationResults where
-  toJSON = genericToJSON validationResultsOptions
-instance FromJSON ValidationResults where
-  parseJSON = genericParseJSON validationResultsOptions
+    toJSON = genericToJSON validationResultsOptions
 
-vnuValidate :: BSL.ByteString -> IO (Either String ValidationResults)
-vnuValidate f = do
-  (Just inp, _,  Just errp, phdl) <- createProcess
-    (proc "java" ["-jar", vnuJarFile, "--exit-zero-always", "--format", "json", "-"])
-      { std_in = CreatePipe
-      , std_err = CreatePipe
-      , std_out = UseHandle stdout
-      }
-  BSL.hPutStr inp f
-  exitCode <- waitForProcess phdl
-  case exitCode of
-    ExitSuccess -> do
-      putStrLn "reading err pipe"
-      input <- BSL.hGetContents errp
-      let results = eitherDecode' input :: Either String ValidationResults
-      return results
-    ExitFailure _ -> return . Left $ "ExitCodeFailure: " <> show exitCode
+instance FromJSON ValidationResults where
+    parseJSON = genericParseJSON validationResultsOptions
+
+gatherOutput :: ProcessHandle -> Handle -> IO (ExitCode, BSL.ByteString)
+gatherOutput ph h = work mempty
+  where
+    work acc = do
+        -- Read any outstanding input.
+        bs <- BSL.hGetNonBlocking h (64 * 1024)
+        let acc' = acc <> bs
+        -- Check on the process.
+        s <- getProcessExitCode ph
+        -- Exit or loop.
+        case s of
+            Nothing -> work acc'
+            Just ec -> do
+                -- Get any last bit written between the read and the status
+                -- check.
+                last' <- BSL.hGetContents h
+                return (ec, acc' <> last')
+
+vnuValidateBSL :: BSL.ByteString -> IO (Either String ValidationResults)
+vnuValidateBSL f = do
+    let ps = proc "java" ["-jar", vnuJarFile, "--exit-zero-always", "--format", "json", "-"]
+    (exitCode, _, err) <- readCreateProcessWithExitCode ps f
+    case exitCode of
+        ExitSuccess -> return $ eitherDecode err
+        ExitFailure e -> return . Left $ "ExitCodeFailure: " <> show exitCode <> " Error: " <> show e
 
 main :: IO ()
 main = do
   f <- BSL.readFile "/tmp/lvs-home.html"
-  results <- vnuValidate f
+  results <- vnuValidateBSL f
   case results of
     Left e  -> print $ "Error: " <> e
     Right r -> BSL.putStr $ encodePretty' (defConfig {confIndent=Spaces 2}) r
