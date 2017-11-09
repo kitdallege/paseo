@@ -1,4 +1,3 @@
-
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -10,8 +9,7 @@ module Handler.Scans where
 
 import           Database.Persist.Sql    (fromSqlKey, toSqlKey)
 import           Import
-import           System.Directory        (getAppUserDataDirectory,
-                                          listDirectory)
+import           System.Directory        (listDirectory)
 -- import           Text.Julius             (RawJS (..))
 import           Yesod.Form.Bootstrap3   (BootstrapFormLayout (..),
                                           renderBootstrap3)
@@ -20,22 +18,8 @@ import           Data.Time.Clock.POSIX       (POSIXTime, getPOSIXTime)
 import Queries (runExtDB, runExtDB')
 import qualified Paseo.Spider as Spider
 import qualified Queries as Q
+import Paseo.Common.Handler
 
-getAppStoragePath :: (HandlerSite m ~ App, MonadHandler m) => m Text
-getAppStoragePath = do
-    master <- getYesod
-    let dataDir = appStoragePath $ appSettings master
-    case dataDir of
-        Nothing -> do
-            dir <- liftIO $ getAppUserDataDirectory "paseo"
-            return . pack $ dir
-        Just path -> return . pack $ path
-
-
-getScanFileFullPath :: (HandlerSite m ~ App, MonadHandler m) => Text -> m Text
-getScanFileFullPath file = do
-    path <- getAppStoragePath
-    return . pack $ unpack path </> unpack file
 
 getScanListR :: Handler Html
 getScanListR = do
@@ -55,7 +39,8 @@ getScanDetailR scanId = do
 
 getScanPageDetailR :: Text -> Int -> Handler Html
 getScanPageDetailR scanId pageId = do
-    let file = "/tmp/paseo/" <> scanId
+    path <- getAppStoragePath
+    let file = path <> scanId
     mPage <- runExtDB file $ get $ toSqlKey (fromIntegral pageId)
     metaTags <- runExtDB file $ selectList [PageMetaPage ==. toSqlKey (fromIntegral pageId)] []
     case mPage of

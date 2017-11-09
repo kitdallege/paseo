@@ -8,7 +8,8 @@ module Handler.Home where
 import Import
 import Yesod.Form.Bootstrap3 (BootstrapFormLayout (..), renderBootstrap3)
 import Text.Julius (RawJS (..))
-import System.Directory (listDirectory)
+-- import System.Directory (listDirectory)
+-- import Paseo.Common.Handler
 
 -- Define our data that will be used for creating the form.
 data FileForm = FileForm
@@ -36,7 +37,8 @@ getHomeR = do
     defaultLayout $ do
         let (commentFormId, commentTextareaId, commentListId) = commentIds
         aDomId <- newIdent
-        files <- liftIO $ listDirectory "/tmp/paseo"
+        -- dataDir <- getAppStoragePath
+        -- files <- liftIO $ listDirectory (unpack dataDir)
         setTitle "Welcome To Paseo!"
         $(widgetFile "homepage")
 
@@ -50,7 +52,6 @@ postHomeR = do
 
     defaultLayout $ do
         let (commentFormId, commentTextareaId, commentListId) = commentIds
-            files = mempty :: [FilePath]
         aDomId <- newIdent
         setTitle "Welcome To Yesod!"
         $(widgetFile "homepage")

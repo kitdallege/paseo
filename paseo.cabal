@@ -91,6 +91,7 @@ library
       Import
       Import.NoFoundation
       Model
+      Paseo.Common.Handler
       Paseo.Spider
       Paseo.Spider.VnuValidation
       Paseo.WFind

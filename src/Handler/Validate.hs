@@ -56,35 +56,38 @@ postValidateR = do
                     let messages = toList (valResultsMessages vr) :: [Message]
                     toWidget [whamlet|
                         <div id="results">
-                            <ol>
-                                $forall msg <- messages
-                                    <li>
-                                        <p>
-                                            <strong>#{show (msgType msg)}
-                                            :
-                                            <span>#{msgMessage msg}
-                                            <p class="location">
-                                            From line
-                                            <span>
-                                                $maybe firstLine <- msgFirstLine msg
-                                                    #{firstLine}
-                                                $nothing
-                                                    #{msgLastLine msg}
-                                            , column
-                                            <span>
-                                                $maybe firstColumn <- msgFirstColumn msg
-                                                    #{firstColumn}
-                                                $nothing
+                            $if null messages
+                                <h3>No Errors Found
+                            $else
+                                <ol>
+                                    $forall msg <- messages
+                                        <li>
+                                            <p>
+                                                <strong>#{show (msgType msg)}
+                                                :
+                                                <span>#{msgMessage msg}
+                                                <p class="location">
+                                                From line
+                                                <span>
+                                                    $maybe firstLine <- msgFirstLine msg
+                                                        #{firstLine}
+                                                    $nothing
+                                                        #{msgLastLine msg}
+                                                , column
+                                                <span>
+                                                    $maybe firstColumn <- msgFirstColumn msg
+                                                        #{firstColumn}
+                                                    $nothing
 
-                                            ; to line
-                                            <span> #{msgLastLine msg}
-                                            , column
-                                            <span> #{msgLastColumn msg}
-                                            <p extract>
-                                            <code>
-                                                $maybe extract <- msgExtract msg
-                                                    #{extract}
-                                                $nothing
+                                                ; to line
+                                                <span> #{msgLastLine msg}
+                                                , column
+                                                <span> #{msgLastColumn msg}
+                                                <p extract>
+                                                <code>
+                                                    $maybe extract <- msgExtract msg
+                                                        #{extract}
+                                                    $nothing
                                                     ""
                     |]
                     toWidget [lucius|.results{}|]
